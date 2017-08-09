@@ -1,3 +1,201 @@
 Structure of Relational Databases
 :A relational database consists of a collection of tables, each of which is assigned a
 unique name.
+mysql> SELECT VERSION(), CURRENT_DATE;
+mysql> SELECT VERSION(); SELECT NOW();
+mysql> SELECT
+    -> USER()
+mysql> SHOW DATABASES;
+mysql> GRANT ALL ON menagerie.* TO 'your_mysql_name'@'your_client_host';
+mysql> SHOW TABLES;
+mysql> CREATE TABLE pet (name VARCHAR(20), owner VARCHAR(20),
+    -> species VARCHAR(20), sex CHAR(1), birth DATE, death DATE);
+mysql> DESCRIBE pet;
+mysql> LOAD DATA LOCAL INFILE '/path/pet.txt' INTO TABLE pet
+    -> LINES TERMINATED BY '\r\n';
+mysql> LOAD DATA LOCAL INFILE '/path/pet.txt' INTO TABLE pet;
+mysql> INSERT INTO pet
+    -> VALUES ('Puffball','Diane','hamster','f','1999-03-30',NULL);
+SELECT what_to_select
+FROM which_table
+WHERE conditions_to_satisfy;
+mysql> SELECT * FROM pet;
+mysql> DELETE FROM pet;
+mysql> UPDATE pet SET birth = '1989-08-31' WHERE name = 'Bowser';
+mysql> SELECT * FROM pet WHERE name = 'Bowser';
+mysql> SELECT name, birth FROM pet ORDER BY birth;//to sort row
+mysql> SELECT name, birth FROM pet ORDER BY birth DESC;
+mysql> SELECT name, species, birth FROM pet
+    -> ORDER BY species, birth DESC;
+mysql> SELECT name, birth, CURDATE(),
+    -> TIMESTAMPDIFF(YEAR,birth,CURDATE()) AS age
+    -> FROM pet;
+mysql> SELECT name, birth, CURDATE(),
+    -> TIMESTAMPDIFF(YEAR,birth,CURDATE()) AS age
+    -> FROM pet ORDER BY name;
+mysql> SELECT name, birth, CURDATE(),
+    -> TIMESTAMPDIFF(YEAR,birth,CURDATE()) AS age
+    -> FROM pet ORDER BY age;
+mysql> SELECT name, birth, death,
+    -> TIMESTAMPDIFF(YEAR,birth,death) AS age
+    -> FROM pet WHERE death IS NOT NULL ORDER BY age;
+mysql> SELECT name, birth, MONTH(birth) FROM pet;
+mysql> SELECT name, birth FROM pet WHERE MONTH(birth) = 5;
+mysql> SELECT name, birth FROM pet
+    -> WHERE MONTH(birth) = MONTH(DATE_ADD(CURDATE(),INTERVAL 1 MONTH));
+mysql> SELECT 1 IS NULL, 1 IS NOT NULL;
+
+//imp concept
+B.5.4.3 Problems with NULL Values
+
+The concept of the NULL value is a common source of confusion for newcomers to SQL, who often think that NULL is the same thing 
+as an empty string ''. This is not the case. For example, the following statements are completely different:
+
+mysql> INSERT INTO my_table (phone) VALUES (NULL);
+mysql> INSERT INTO my_table (phone) VALUES ('');
+Both statements insert a value into the phone column, but the first inserts a NULL value and the second inserts an empty string.
+The meaning of the first can be regarded as “phone number is not known” and the meaning of the second can be regarded 
+as “the person is known to have no phone, and thus no phone number.”
+mysql> SELECT IFNULL(1,0);//if first number is not null then it returns first number otherwise it return second number
+        -> 1
+mysql> SELECT IFNULL(NULL,10);
+        -> 10
+mysql> SELECT * FROM my_table WHERE phone IS NULL;
+
+
+
+
+Standard SQL disallows references to column aliases in a WHERE clause.
+This restriction is imposed because when the WHERE clause is evaluated, 
+the column value may not yet have been determined. For example, the following query is illegal:
+SELECT id, COUNT(*) AS cnt FROM tbl_name
+  WHERE cnt > 0 GROUP BY id;
+  
+  
+  
+  
+If you receive the following message when trying to perform a ROLLBACK, 
+it means that one or more of the tables you used in the transaction do not support transactions:
+
+Warning: Some non-transactional changed tables couldn't be rolled back
+
+
+mysql> SELECT COUNT(*) FROM pet;
++----------+
+| COUNT(*) |
++----------+
+|        9 |
++----------+
+
+mysql> SELECT owner, COUNT(*) FROM pet GROUP BY owner;
++--------+----------+
+| owner  | COUNT(*) |
++--------+----------+
+| Benny  |        2 |
+| Diane  |        2 |
+| Gwen   |        3 |
+| Harold |        2 |
++--------+----------+
+
+mysql> SELECT species, sex, COUNT(*) FROM pet GROUP BY species, sex;
++---------+------+----------+
+| species | sex  | COUNT(*) |
++---------+------+----------+
+| bird    | NULL |        1 |
+| bird    | f    |        1 |
+| cat     | f    |        1 |
+| cat     | m    |        1 |
+| dog     | f    |        1 |
+| dog     | m    |        2 |
+| hamster | f    |        1 |
+| snake   | m    |        1 |
++---------+------+----------+
+
+
+
+
+
+mysql> SET sql_mode = 'ONLY_FULL_GROUP_BY';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SELECT owner, COUNT(*) FROM pet;
+ERROR 1140 (42000): In aggregated query without GROUP BY, expression
+#1 of SELECT list contains nonaggregated column 'menagerie.pet.owner';
+this is incompatible with sql_mode=only_full_group_by
+
+mysql> SELECT pet.name,
+    -> TIMESTAMPDIFF(YEAR,birth,date) AS age,
+    -> remark
+    -> FROM pet INNER JOIN event
+    ->   ON pet.name = event.name
+    -> WHERE event.type = 'litter';
++--------+------+-----------------------------+
+| name   | age  | remark                      |
++--------+------+-----------------------------+
+| Fluffy |    2 | 4 kittens, 3 female, 1 male |
+| Buffy  |    4 | 5 puppies, 2 female, 3 male |
+| Buffy  |    5 | 3 puppies, 3 female         |
++--------+------+-----------------------------+
+
+mysql> SELECT p1.name, p1.sex, p2.name, p2.sex, p1.species
+    -> FROM pet AS p1 INNER JOIN pet AS p2
+    ->   ON p1.species = p2.species AND p1.sex = 'f' AND p2.sex = 'm';
++--------+------+--------+------+---------+
+| name   | sex  | name   | sex  | species |
++--------+------+--------+------+---------+
+| Fluffy | f    | Claws  | m    | cat     |
+| Buffy  | f    | Fang   | m    | dog     |
+| Buffy  | f    | Bowser | m    | dog     |
++--------+------+--------+------+---------+
+
+
+
+CREATE TABLE shop (
+    article INT(4) UNSIGNED ZEROFILL DEFAULT '0000' NOT NULL,
+    dealer  CHAR(20)                 DEFAULT ''     NOT NULL,
+    price   DOUBLE(16,2)             DEFAULT '0.00' NOT NULL,
+    PRIMARY KEY(article, dealer));
+INSERT INTO shop VALUES
+    (1,'A',3.45),(1,'B',3.99),(2,'A',10.99),(3,'B',1.45),
+    (3,'C',1.69),(3,'D',1.25),(4,'D',19.95);
+
+
+
+SELECT * FROM shop;
+
++---------+--------+-------+
+| article | dealer | price |
++---------+--------+-------+
+|    0001 | A      |  3.45 |
+|    0001 | B      |  3.99 |
+|    0002 | A      | 10.99 |
+|    0003 | B      |  1.45 |
+|    0003 | C      |  1.69 |
+|    0003 | D      |  1.25 |
+|    0004 | D      | 19.95 |
++---------+--------+-------+
+
+
+
+SELECT MAX(article) AS article FROM shop;
+
++---------+
+| article |
++---------+
+|       4 |
++---------+
+
+
+
+
+
+
+SELECT s1.article, s1.dealer, s1.price
+FROM shop s1
+LEFT JOIN shop s2 ON s1.price < s2.price
+WHERE s2.article IS NULL;
+
+SELECT article, dealer, price
+FROM shop
+ORDER BY price DESC
+LIMIT 1;
