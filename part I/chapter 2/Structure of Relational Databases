@@ -199,3 +199,88 @@ SELECT article, dealer, price
 FROM shop
 ORDER BY price DESC
 LIMIT 1;
+
+
+
+SELECT article, MAX(price) AS price
+FROM   shop
+GROUP BY article;
+
++---------+-------+
+| article | price |
++---------+-------+
+|    0001 |  3.99 |
+|    0002 | 10.99 |
+|    0003 |  1.69 |
+|    0004 | 19.95 |
++---------+-------+
+
+
+
+
+
+mysql> SELECT @min_price:=MIN(price),@max_price:=MAX(price) FROM shop;
+mysql> SELECT * FROM shop WHERE price=@min_price OR price=@max_price;
++---------+--------+-------+
+| article | dealer | price |
++---------+--------+-------+
+|    0003 | D      |  1.25 |
+|    0004 | D      | 19.95 |
++---------+--------+-------+
+
+
+
+
+
+SELECT field1_index, field2_index FROM test_table
+WHERE field1_index = '1' OR  field2_index = '1'
+
+
+
+3.6.8 Calculating Visits Per Day
+CREATE TABLE t1 (year YEAR(4), month INT(2) UNSIGNED ZEROFILL,
+             day INT(2) UNSIGNED ZEROFILL);
+INSERT INTO t1 VALUES(2000,1,1),(2000,1,20),(2000,1,30),(2000,2,2),
+            (2000,2,23),(2000,2,23);
+            
+            
+SELECT year,month,BIT_COUNT(BIT_OR(1<<day)) AS days FROM t1
+       GROUP BY year,month;
+       
+       
+       
+       
+       CREATE TABLE animals (
+     id MEDIUMINT NOT NULL AUTO_INCREMENT,
+     name CHAR(30) NOT NULL,
+     PRIMARY KEY (id)
+);
+
+INSERT INTO animals (name) VALUES
+    ('dog'),('cat'),('penguin'),
+    ('lax'),('whale'),('ostrich');
+
+SELECT * FROM animals;
++----+---------+
+| id | name    |
++----+---------+
+|  1 | dog     |
+|  2 | cat     |
+|  3 | penguin |
+|  4 | lax     |
+|  5 | whale   |
+|  6 | ostrich |
++----+---------+
+
+
+1.8.2.1 SELECT INTO TABLE Differences
+
+MySQL Server doesn't support the SELECT ... INTO TABLE Sybase SQL extension. Instead, MySQL Server supports the INSERT INTO ... SELECT standard SQL syntax, which is basically the same thing. See Section 13.2.5.1, “INSERT ... SELECT Syntax”. For example:
+
+INSERT INTO tbl_temp2 (fld_id)
+    SELECT tbl_temp1.fld_order_id
+    FROM tbl_temp1 WHERE tbl_temp1.fld_order_id > 100;
+
+
+
+UPDATE t1 SET col1 = col1 + 1, col2 = col1;
